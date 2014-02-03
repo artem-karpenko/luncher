@@ -24,10 +24,6 @@ object Server {
   def main(args: Array[String]) {
     initSessionFactory()
 
-    transaction {
-//      Luncher.create
-    }
-
     val echo = unfiltered.filter.Planify {
       case GET(Path("/users")) =>
         transaction {
@@ -42,6 +38,16 @@ object Server {
           Luncher.users.insert(user)
         }
         ResponseString("USER ADDED")
+
+      case DELETE(Path(Seg("users" :: "deleteByEmail" :: email :: Nil))) =>
+        transaction {
+          val deletedCount = User.deleteByEmail(email)
+          var response = "USER REMOVED"
+          if (deletedCount == 0) {
+            response = "USER NOT FOUND"
+          }
+          ResponseString(response)
+        }
     }
 
     unfiltered.jetty.Http.local(8080).filter(echo).run()

@@ -8,7 +8,7 @@ object Luncher extends Schema {
   val orders = table[Order]("ORDERS")
 
   on(users)(u => declare(
-    u.email is(unique)
+    u.email is(unique, indexed)
   ))
 
   on(orders)(o => declare(

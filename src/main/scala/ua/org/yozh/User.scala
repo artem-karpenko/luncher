@@ -2,7 +2,7 @@ package ua.org.yozh
 
 import org.squeryl.KeyedEntity
 import org.squeryl.PrimitiveTypeMode._
-import spray.json.DefaultJsonProtocol
+import spray.json._
 
 /**
  * @author artem
@@ -29,6 +29,23 @@ object User {
 /**
  * For JSON serialization
  */
+//object UserJsonProtocol extends DefaultJsonProtocol {
+//  implicit val userFormat = jsonFormat(User.apply, "name", "email")
+//}
+
 object UserJsonProtocol extends DefaultJsonProtocol {
-  implicit val userFormat = jsonFormat(User.apply, "name", "email")
+  implicit object UserJsonFormat extends RootJsonFormat[User] {
+    def write(u: User) = JsObject(
+      "name" -> JsString(u.name),
+      "email" -> JsString(u.email)
+    )
+
+    def read(value: JsValue) = {
+      value.asJsObject.getFields("name", "email") match {
+        case Seq(JsString(name), JsString(email)) =>
+          new User(name, email)
+        case _ => throw new DeserializationException("Order expected")
+      }
+    }
+  }
 }

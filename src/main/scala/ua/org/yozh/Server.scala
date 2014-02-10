@@ -9,12 +9,12 @@ import org.squeryl.{Query, Session, SessionFactory}
 import java.sql.DriverManager
 import org.squeryl.adapters.H2Adapter
 import spray.json._
-import UserJsonProtocol._
-import scala.Some
+import java.util.Date
 
 //import DefaultJsonProtocol._
-import scala.collection.mutable.ArrayBuffer
-;
+//import UserJsonProtocol._
+//import OrderJsonProtocol._
+import scala.Some
 
 /**
  * @author artem
@@ -23,24 +23,47 @@ object Server {
   def main(args: Array[String]) {
     initSessionFactory()
 
+//    transaction {
+//      Luncher.create
+//    }
+
     val echo = unfiltered.filter.Planify {
       case GET(Path("/users")) =>
+        import UserJsonProtocol._
+
         transaction {
           val usersQuery: Query[User] = User.allUsers
           ResponseString(usersQuery.asInstanceOf[Iterable[User]].toJson.prettyPrint)
         }
 
       case GET(Path(Seg("users" :: userEmail :: Nil))) =>
+        import UserJsonProtocol._
+
         transaction {
           val user = User.getByEmail(userEmail).headOption
           if (user.isDefined) {
-            ResponseString(user.toJson.prettyPrint)
+            ResponseString(user.get.toJson.prettyPrint)
+          } else {
+            NotFound
+          }
+        }
+
+      case GET(Path(Seg("users" :: userEmail :: "orders" :: Nil))) =>
+        import OrderJsonProtocol._
+
+        transaction {
+          val user = User.getByEmail(userEmail).headOption
+          if (user.isDefined) {
+            val orders = Order.byUserId(user.get.id)
+            ResponseString(orders.asInstanceOf[Iterable[Order]].toJson.prettyPrint)
           } else {
             NotFound
           }
         }
 
       case req @ POST(Path("/users")) =>
+        import UserJsonProtocol._
+
         val bytes = Body.bytes(req)
         val user = new String(bytes).asJson.convertTo[User]
         transaction {
@@ -48,14 +71,46 @@ object Server {
         }
         ResponseString("USER ADDED")
 
+      case req @ POST(Path(Seg("users" :: userEmail :: "orders" :: Nil))) =>
+        import OrderJsonProtocol._
+
+        transaction {
+          val user = User.getByEmail(userEmail).headOption
+          if (user.isDefined) {
+            val bytes = Body.bytes(req)
+            val order = new String(bytes).asJson.convertTo[Order]
+            transaction {
+              Luncher.orders.insert(Order(order.description, user.get.id, order.date))
+            }
+            ResponseString("ORDER ADDED")
+          } else {
+            NotFound
+          }
+        }
+
       case DELETE(Path(Seg("users" :: "deleteByEmail" :: email :: Nil))) =>
         transaction {
           val deletedCount = User.deleteByEmail(email)
-          var response = "USER REMOVED"
-          if (deletedCount == 0) {
-            response = "USER NOT FOUND"
+          if (deletedCount != 0) {
+            ResponseString("USER REMOVED")
+          } else {
+            NotFound
           }
-          ResponseString(response)
+        }
+
+      case DELETE(Path(Seg("users" :: userEmail :: "orders" :: date :: Nil))) =>
+        transaction {
+          val user = User.getByEmail(userEmail).headOption
+          if (user.isDefined) {
+            val deletedCount = Order.deleteByUserIdAndDate(user.get.id, new Date(BigInt(date).longValue()))
+            if (deletedCount != 0) {
+              ResponseString("ORDER REMOVED")
+            } else {
+              NotFound
+            }
+          } else {
+            NotFound
+          }
         }
     }
 

@@ -4,16 +4,19 @@
         <tr>
             <th>Name</th>
             <th>Email</th>
+            <th>Orders</th>
             <th>Action</th>
         </tr>
         <tr data-ng-repeat="user in users">
             <td>{{user.name}}</td>
             <td><a href="mailto:{{user.email}}">{{user.email}}</a></td>
+            <td><a ng-href="#/users/{{user.email}}/orders">Orders</a></td>
             <td><button ng-click="deleteUser(user)">Delete</button></td>
         </tr>
         <tr>
             <td><input ng-model="newUser.name" /></td>
             <td><input ng-model="newUser.email" /></td>
+            <td></td>
             <td><button ng-click="addUser(newUser)">Create</button></td>
         </tr>
     </table>

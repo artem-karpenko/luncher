@@ -17,6 +17,10 @@ object User {
     from(Luncher.users)(s => select(s))
   }
 
+  def getByEmail(email: String) = {
+    Luncher.users.where(u => u.email === email)
+  }
+
   def deleteByEmail(email: String) = {
     Luncher.users.deleteWhere(u => u.email === email)
   }

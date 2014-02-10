@@ -4,14 +4,13 @@ import unfiltered.request._
 import java.io.{PrintWriter, StringWriter}
 import org.squeryl.PrimitiveTypeMode._
 import scala.Some
-import unfiltered.response.ResponseString
+import unfiltered.response.{NotFound, ResponseString}
 import org.squeryl.{Query, Session, SessionFactory}
 import java.sql.DriverManager
 import org.squeryl.adapters.H2Adapter
 import spray.json._
 import UserJsonProtocol._
 import scala.Some
-import unfiltered.response.ResponseString
 
 //import DefaultJsonProtocol._
 import scala.collection.mutable.ArrayBuffer
@@ -29,6 +28,16 @@ object Server {
         transaction {
           val usersQuery: Query[User] = User.allUsers
           ResponseString(usersQuery.asInstanceOf[Iterable[User]].toJson.prettyPrint)
+        }
+
+      case GET(Path(Seg("users" :: userEmail :: Nil))) =>
+        transaction {
+          val user = User.getByEmail(userEmail).headOption
+          if (user.isDefined) {
+            ResponseString(user.toJson.prettyPrint)
+          } else {
+            NotFound
+          }
         }
 
       case req @ POST(Path("/users")) =>

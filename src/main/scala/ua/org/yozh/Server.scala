@@ -31,7 +31,7 @@ object Server {
           ResponseString(usersQuery.asInstanceOf[Iterable[User]].toJson.prettyPrint)
         }
 
-      case req @ PUT(Path("/users/add")) =>
+      case req @ POST(Path("/users")) =>
         val bytes = Body.bytes(req)
         val user = new String(bytes).asJson.convertTo[User]
         transaction {

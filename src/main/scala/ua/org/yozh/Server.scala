@@ -61,6 +61,20 @@ object Server {
           }
         }
 
+      case GET(Path(Seg("users" :: userEmail :: "orders" :: "from" :: fromDate :: "to" :: toDate :: Nil))) =>
+        import OrderJsonProtocol._
+
+        transaction {
+          val user = User.getByEmail(userEmail).headOption
+          if (user.isDefined) {
+            val orders = Order.byUserIdAndDates(user.get.id, new Date(BigInt(fromDate).longValue()),
+              new Date(BigInt(fromDate).longValue()))
+            ResponseString(orders.asInstanceOf[Iterable[Order]].toJson.prettyPrint)
+          } else {
+            NotFound
+          }
+        }
+
       case req @ POST(Path("/users")) =>
         import UserJsonProtocol._
 
@@ -81,6 +95,24 @@ object Server {
             val order = new String(bytes).asJson.convertTo[Order]
             transaction {
               Luncher.orders.insert(Order(order.description, user.get.id, order.date))
+            }
+            ResponseString("ORDER ADDED")
+          } else {
+            NotFound
+          }
+        }
+
+      case req @ POST(Path(Seg("users" :: userEmail :: "orders" :: "all" :: Nil))) =>
+        import OrderJsonProtocol._
+
+        transaction {
+          val user = User.getByEmail(userEmail).headOption
+          if (user.isDefined) {
+            val bytes = Body.bytes(req)
+            val orders = new String(bytes).asJson.convertTo[Array[Order]]
+            transaction {
+//              Luncher.orders.insert(Order(order.description, user.get.id, order.date))
+              Order.addOrUpdateAll(user.get.id, orders)
             }
             ResponseString("ORDER ADDED")
           } else {

@@ -113,7 +113,7 @@ object Server {
             transaction {
               Order.addOrUpdateAll(user.get.id, orders)
             }
-            ResponseString("ORDER ADDED")
+            ResponseString("ORDERS SAVED")
           } else {
             NotFound
           }

@@ -3,6 +3,7 @@
 angular.module('luncher').controller('OrderController', function ($scope, $routeParams, Restangular) {
     $scope.orderData = {
         userEmail: $routeParams.userEmail,
+        thisWeekOrders: [],
         nextWeekOrders: [],
         availableOrderDescriptions: [
             "Комплекс №1",
@@ -22,8 +23,8 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
     var orderRest = userRest.all("orders");
     $scope.orderData.user = userRest.get().$object;
 
-//    getAllOrders();
-    getNextWeekOrders();
+    $scope.orderData.thisWeekOrders = getOrders(getThisWeekBounds());
+    $scope.orderData.nextWeekOrders = getOrders(getNextWeekBounds());
 
     $scope.addOrder = function (newOrder) {
         $scope.orders.post(newOrder).then(function() {
@@ -38,32 +39,48 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
         });
     };
 
-    $scope.saveNextWeekOrders = function () {
-        orderRest.all("all").post($scope.orderData.nextWeekOrders);
+    $scope.saveOrders = function (orders) {
+        orderRest.all("all").post(orders);
     };
 
-    function getNextWeekOrders() {
-        var bounds = getNextWeekBounds();
-        $scope.orderData.nextWeekOrders = orderRest
+    /**
+     * Get orders within the given date bounds
+     * @param bounds
+     */
+    function getOrders(bounds) {
+        var orders = orderRest
             .one("from", bounds.from.getTime())
             .one("to", bounds.to.getTime()).getList().$object;
 
         for (var from = new Date(bounds.from.getTime()); from.getTime() < bounds.to.getTime();
              from = new Date(from.getTime()), from.setDate(from.getDate() + 1)) {
-            if (!$scope.orderData.nextWeekOrders[from]) {
-                $scope.orderData.nextWeekOrders.push(new Order(from.getTime(), "Комплекс №2"));
+            if (!orders[from]) {
+                orders.push(new Order(from.getTime(), ""));
             }
         }
+        return orders;
+    }
+
+    function getThisWeekBounds() {
+        var today = new Date();
+        var nextFriday = new Date();
+
+        if (0 < today.getDay() && today.getDay() < 6) {
+            nextFriday.setDate(nextFriday.getDate() + (6 - today.getDay()));
+        }
+
+        return {
+            from: today,
+            to: nextFriday
+        };
     }
 
     function getNextWeekBounds() {
         var nextMonday = new Date();
-        do {
-            nextMonday.setDate(nextMonday.getDate() + 1);
-        } while (nextMonday.getDay() != 1);
+        nextMonday.setDate(nextMonday.getDate() + ((7 - nextMonday.getDay()) % 7) + 1);
 
         var nextFriday = new Date(nextMonday.getFullYear(), nextMonday.getMonth(),
-            nextMonday.getDate() + 5);
+            nextMonday.getDate() + 4);
 
         return {
             from: nextMonday,

@@ -48,7 +48,7 @@ object Order {
 
   def groupedByDayAndDesc(fromDate: Date, toDate: Date) = {
     from(Luncher.orders)(o =>
-//      where(o.date >= fromDate and o.date <= toDate)
+      where(o.date >= fromDate and o.date <= toDate and (o.description isNotNull))
       groupBy(o.date, o.description)
       compute(count())
       orderBy(o.date)

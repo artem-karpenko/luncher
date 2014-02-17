@@ -19,6 +19,7 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
         this.description = description;
     };
 
+    var mailRest = Restangular.all('rest/sendMail')
     var userRest = Restangular.one('rest/users', $scope.orderData.userEmail);
     var orderRest = userRest.all("orders");
     $scope.orderData.user = userRest.get().$object;
@@ -43,6 +44,21 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
         orderRest.all("all").post(orders);
     };
 
+    $scope.sendThisWeekEmail = function () {
+        sendEmail(getThisWeekBounds())
+    };
+
+    $scope.sendNextWeekEmail = function () {
+        sendEmail(getNextWeekBounds())
+    };
+
+    function sendEmail(bounds) {
+        mailRest
+            .one("from", bounds.from.getTime())
+            .one("to", bounds.to.getTime())
+            .post()
+    }
+
     /**
      * Get orders within the given date bounds
      * @param bounds
@@ -52,21 +68,21 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
             .one("from", bounds.from.getTime())
             .one("to", bounds.to.getTime()).getList().$object;
 
-        for (var from = new Date(bounds.from.getTime()); from.getTime() < bounds.to.getTime();
+        for (var from = new Date(bounds.from.getTime()); from.getTime() <= bounds.to.getTime();
              from = new Date(from.getTime()), from.setDate(from.getDate() + 1)) {
             if (!orders[from]) {
-                orders.push(new Order(from.getTime(), ""));
+                orders.push(new Order(from.getTime(), null));
             }
         }
         return orders;
     }
 
     function getThisWeekBounds() {
-        var today = new Date();
-        var nextFriday = new Date();
+        var today = getToday();
+        var nextFriday = getToday();
 
         if (0 < today.getDay() && today.getDay() < 6) {
-            nextFriday.setDate(nextFriday.getDate() + (6 - today.getDay()));
+            nextFriday.setDate(nextFriday.getDate() + (5 - today.getDay()));
         }
 
         return {
@@ -76,7 +92,7 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
     }
 
     function getNextWeekBounds() {
-        var nextMonday = new Date();
+        var nextMonday = getToday();
         nextMonday.setDate(nextMonday.getDate() + ((7 - nextMonday.getDay()) % 7) + 1);
 
         var nextFriday = new Date(nextMonday.getFullYear(), nextMonday.getMonth(),
@@ -90,5 +106,14 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
 
     function getAllOrders() {
         $scope.orders = orderRest.getList().$object;
+    }
+
+    function getToday() {
+        var today = new Date();
+        today.setHours(0);
+        today.setMinutes(0);
+        today.setSeconds(0);
+        today.setMilliseconds(0);
+        return today;
     }
 });

@@ -17,12 +17,19 @@ import scala.collection.mutable
 object MailService {
   val dateFormat = new SimpleDateFormat("dd.MM")
 
+  /**
+   * Send email with orders for given date bounds
+   * @param from
+   * @param to
+   */
   def sendMail(from: Date, to: Date) {
     val text = new StringBuilder
     val orderMap = new collection.mutable.LinkedHashMap[Date, collection.mutable.Map[String, Long]]
 
+    // collect orders into a map
     transaction {
       val orders = Order.groupedByDayAndDesc(from, to)
+      println(orders.size)
       for (order <- orders) {
         if (!orderMap.contains(order.key._1)) {
           orderMap(order.key._1) = new mutable.HashMap[String, Long]
@@ -31,6 +38,7 @@ object MailService {
       }
     }
 
+    // build email text
     orderMap foreach { day =>
       text.append(dateFormat.format(day._1)).append('\n')
       day._2.foreach { order =>
@@ -39,7 +47,7 @@ object MailService {
       text.append('\n')
     }
 
-    println(text)
+//    println(text)
 
     val props = new Properties()
     props.put("mail.smtp.auth", "true")
@@ -55,6 +63,7 @@ object MailService {
       }
     )
 
+    // final settings and send
     val message = new MimeMessage(session)
     message.setFrom(new InternetAddress("food-orders@smiss.ua"))
     message.setRecipient(Message.RecipientType.TO, new InternetAddress(System.getProperty("username")))

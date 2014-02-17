@@ -19,6 +19,7 @@
         </tr>
     </table>
     <button ng-click="saveOrders(orderData.thisWeekOrders)">Save</button>
+    <button ng-click="sendThisWeekEmail()">Send email</button>
     <br />
 
     Next week
@@ -38,22 +39,5 @@
         </tr>
     </table>
     <button ng-click="saveOrders(orderData.nextWeekOrders)">Save</button>
-    <!--
-    <table>
-        <tr>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Action</th>
-        </tr>
-        <tr ng-repeat="order in orders">
-            <td>{{order.date}}</td>
-            <td>{{order.description}}</td>
-            <td><button ng-click="deleteOrder(order)">Delete</button></td>
-        </tr>
-        <tr>
-            <td><input ng-model="newOrder.date" /></td>
-            <td><input ng-model="newOrder.description" /></td>
-            <td><button ng-click="addOrder(newOrder)">Add order</button></td>
-        </tr>
-    </table>-->
+    <button ng-click="sendNextWeekEmail()">Send email</button>
 </div>

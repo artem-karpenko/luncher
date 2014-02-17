@@ -26,7 +26,7 @@ object Server {
 //    transaction {
 //      Luncher.create
 //    }
-    MailService.sendMail(new Date(), new Date(2014, 1, 30))
+//    MailService.sendMail(new Date(), new Date(2014, 1, 30))
 
     val echo = unfiltered.filter.Planify {
       case GET(Path("/users")) =>
@@ -151,7 +151,7 @@ object Server {
           }
         }
 
-      case POST(Path(Seg("/sendMail" :: "from" :: fromDate :: "to" :: toDate :: Nil))) =>
+      case POST(Path(Seg("sendMail" :: "from" :: fromDate :: "to" :: toDate :: Nil))) =>
         transaction {
           MailService.sendMail(new Date(BigInt(fromDate).longValue),
             new Date(BigInt(toDate).longValue))

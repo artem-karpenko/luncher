@@ -4,7 +4,7 @@ import unfiltered.request._
 import java.io.{PrintWriter, StringWriter}
 import org.squeryl.PrimitiveTypeMode._
 import scala.Some
-import unfiltered.response.{NotFound, ResponseString}
+import unfiltered.response.{Ok, NotFound, ResponseString}
 import org.squeryl.{Query, Session, SessionFactory}
 import java.sql.DriverManager
 import org.squeryl.adapters.H2Adapter
@@ -26,6 +26,7 @@ object Server {
 //    transaction {
 //      Luncher.create
 //    }
+    MailService.sendMail(new Date(), new Date(2014, 1, 30))
 
     val echo = unfiltered.filter.Planify {
       case GET(Path("/users")) =>
@@ -148,6 +149,13 @@ object Server {
           } else {
             NotFound
           }
+        }
+
+      case POST(Path(Seg("/sendMail" :: "from" :: fromDate :: "to" :: toDate :: Nil))) =>
+        transaction {
+          MailService.sendMail(new Date(BigInt(fromDate).longValue),
+            new Date(BigInt(toDate).longValue))
+          Ok
         }
     }
 

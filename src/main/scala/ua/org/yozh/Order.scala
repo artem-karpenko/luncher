@@ -26,7 +26,7 @@ object Order {
       var existingOrder = Luncher.orders.where(o => o.userId === userId and o.date === order.date)
       if (existingOrder.size > 0) {
         Luncher.orders.update(o =>
-          where(o.date === existingOrder.head.date)
+          where(o.date === existingOrder.head.date and o.userId === userId)
           set(o.description := order.description))
       } else {
         Luncher.orders.insert(Order(order.description, userId, order.date))
@@ -44,6 +44,15 @@ object Order {
 
   def byUserIdAndDates(userId: Long, from: Date, to: Date) = {
     Luncher.orders.where(o => o.userId === userId and o.date >= from and o.date <= to)
+  }
+
+  def groupedByDayAndDesc(fromDate: Date, toDate: Date) = {
+    from(Luncher.orders)(o =>
+//      where(o.date >= fromDate and o.date <= toDate)
+      groupBy(o.date, o.description)
+      compute(count())
+      orderBy(o.date)
+    )
   }
 }
 

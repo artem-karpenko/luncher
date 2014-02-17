@@ -18,12 +18,7 @@ case class Order(
 
 object Order {
   def byUserId(userId: Long) = {
-//    val user = User.getByEmail(email).headOption
-//    if (user.isDefined) {
       Luncher.orders.where(o => o.userId === userId)
-//    } else {
-//      None
-//    }
   }
 
   def addOrUpdateAll(userId: Long, orders: Seq[Order]) {
@@ -37,6 +32,10 @@ object Order {
         Luncher.orders.insert(Order(order.description, userId, order.date))
       }
     }
+  }
+
+  def deleteByUserId(userId: Long) = {
+    Luncher.orders.deleteWhere(o => o.userId === userId)
   }
 
   def deleteByUserIdAndDate(userId: Long, date: Date) = {

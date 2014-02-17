@@ -121,6 +121,12 @@ object Server {
 
       case DELETE(Path(Seg("users" :: "deleteByEmail" :: email :: Nil))) =>
         transaction {
+          val user = User.getByEmail(email).headOption
+
+          if (user.isDefined) {
+            Order.deleteByUserId(user.get.id)
+          }
+
           val deletedCount = User.deleteByEmail(email)
           if (deletedCount != 0) {
             ResponseString("USER REMOVED")

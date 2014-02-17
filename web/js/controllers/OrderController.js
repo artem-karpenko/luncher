@@ -18,7 +18,7 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
         this.description = description;
     };
 
-    var userRest = Restangular.one('rest/users/', $scope.orderData.userEmail);
+    var userRest = Restangular.one('rest/users', $scope.orderData.userEmail);
     var orderRest = userRest.all("orders");
     $scope.orderData.user = userRest.get().$object;
 
@@ -39,7 +39,7 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
     };
 
     $scope.saveNextWeekOrders = function () {
-        orderRest.post($scope.orderData.nextWeekOrders);
+        orderRest.all("all").post($scope.orderData.nextWeekOrders);
     };
 
     function getNextWeekOrders() {
@@ -51,7 +51,7 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
         for (var from = new Date(bounds.from.getTime()); from.getTime() < bounds.to.getTime();
              from = new Date(from.getTime()), from.setDate(from.getDate() + 1)) {
             if (!$scope.orderData.nextWeekOrders[from]) {
-                $scope.orderData.nextWeekOrders.push(new Order(from, "Комплекс №2"));
+                $scope.orderData.nextWeekOrders.push(new Order(from.getTime(), "Комплекс №2"));
             }
         }
     }

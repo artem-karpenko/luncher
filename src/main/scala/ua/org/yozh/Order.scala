@@ -10,7 +10,7 @@ import scala.collection.mutable.ArrayBuffer
  * @author artem
  */
 case class Order(
-            val description: String,
+            val description: Option[String],
             val userId: Long,
             val date: Date)  extends KeyedEntity[Long] {
   val id: Long = 0
@@ -65,18 +65,29 @@ object OrderJsonProtocol extends DefaultJsonProtocol {
   import DateJsonProtocol._
 
   implicit object OrderJsonFormat extends RootJsonFormat[Order] {
-    def write(o: Order) = JsObject(
-      "description" -> JsString(o.description),
-      "date" -> o.date.toJson
-    )
+    def write(o: Order) = {
+      JsObject(
+        "description" -> (if (o.description.nonEmpty) JsString(o.description.get) else JsNull),
+        "date" -> o.date.toJson
+      )
+    }
+
     def read(value: JsValue) = {
       value.asJsObject.getFields("description", "date") match {
-        case Seq(JsString(description), JsString(date)) =>
-          new Order(description, -1, new Date(BigInt(date).longValue()))
+        case Seq(JsString(description), JsNumber(date)) =>
+          new Order(Option(description), -1, new Date(date.longValue()))
+
+        case Seq(JsNull, JsNumber(date)) =>
+          new Order(None, -1, new Date(date.longValue()))
+
         case _ => throw new DeserializationException("Order expected")
       }
     }
   }
+}
+
+object OrderListJsonProtocol extends DefaultJsonProtocol {
+  import OrderJsonProtocol._
 
   implicit object OrderListJsonFormat extends RootJsonFormat[Seq[Order]] {
     def write(orders: Seq[Order]): JsValue = {

@@ -1,10 +1,11 @@
-package ua.org.yozh
+package ua.org.yozh.entity
 
 import java.util.Date
 import org.squeryl.KeyedEntity
 import spray.json._
 import org.squeryl.PrimitiveTypeMode._
 import scala.collection.mutable.ArrayBuffer
+import ua.org.yozh.Luncher
 
 /**
  * @author artem
@@ -47,6 +48,8 @@ object Order {
   }
 
   def groupedByDayAndDesc(fromDate: Date, toDate: Date) = {
+    import scala.language.postfixOps
+
     from(Luncher.orders)(o =>
       where(o.date >= fromDate and o.date <= toDate and (o.description isNotNull))
       groupBy(o.date, o.description)

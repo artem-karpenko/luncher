@@ -1,8 +1,9 @@
-package ua.org.yozh
+package ua.org.yozh.entity
 
 import org.squeryl.KeyedEntity
 import org.squeryl.PrimitiveTypeMode._
 import spray.json._
+import ua.org.yozh.Luncher
 
 /**
  * @author artem

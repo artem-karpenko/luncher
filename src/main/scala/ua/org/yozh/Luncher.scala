@@ -2,6 +2,7 @@ package ua.org.yozh
 
 import org.squeryl.Schema
 import org.squeryl.PrimitiveTypeMode._
+import ua.org.yozh.entity.{User, Order}
 
 object Luncher extends Schema {
   val users = table[User]

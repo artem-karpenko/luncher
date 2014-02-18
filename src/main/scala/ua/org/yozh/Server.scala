@@ -10,6 +10,9 @@ import java.sql.DriverManager
 import org.squeryl.adapters.H2Adapter
 import spray.json._
 import java.util.Date
+import ua.org.yozh.entity._
+import scala.Some
+import unfiltered.response.ResponseString
 
 //import DefaultJsonProtocol._
 //import UserJsonProtocol._
@@ -22,6 +25,9 @@ import scala.Some
 object Server {
   def main(args: Array[String]) {
     initSessionFactory()
+
+    SchedulerService
+    Settings
 
 //    transaction {
 //      Luncher.create
@@ -160,6 +166,9 @@ object Server {
     }
 
     unfiltered.jetty.Http.local(8080).filter(echo).run()
+
+    SchedulerService.shutdown()
+    Settings.save()
   }
 
   private def initSessionFactory() {

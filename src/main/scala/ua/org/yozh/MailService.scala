@@ -9,6 +9,7 @@ import org.squeryl.{PrimitiveTypeMode, Query}
 import org.squeryl.dsl.GroupWithMeasures
 import scala.collection.mutable.MapLike
 import scala.collection.mutable
+import ua.org.yozh.entity.Order
 
 /**
  * Service responsible for building and sending of order email
@@ -29,7 +30,6 @@ object MailService {
     // collect orders into a map
     transaction {
       val orders = Order.groupedByDayAndDesc(from, to)
-      println(orders.size)
       for (order <- orders) {
         if (!orderMap.contains(order.key._1)) {
           orderMap(order.key._1) = new mutable.HashMap[String, Long]

@@ -26,7 +26,7 @@ object Server {
   def main(args: Array[String]) {
     initSessionFactory()
 
-    SchedulerService
+    SchedulerService.scheduleRegularUpdate()
     Settings
 
 //    transaction {

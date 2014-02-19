@@ -2,7 +2,7 @@ package ua.org.yozh
 
 import org.quartz.impl.StdSchedulerFactory
 import java.util.{Calendar, Date}
-import org.quartz.{SimpleScheduleBuilder, TriggerBuilder, JobBuilder}
+import org.quartz.{CronScheduleBuilder, SimpleScheduleBuilder, TriggerBuilder, JobBuilder}
 
 /**
  * @author artem
@@ -11,15 +11,14 @@ object SchedulerService {
   val scheduler = StdSchedulerFactory.getDefaultScheduler
   scheduler.start()
 
+  /**
+   * Regular check for updated orders for this week (or for next week in case it's Sat/Sun)
+   */
   def scheduleRegularUpdate() {
-    val cal: Calendar = Calendar.getInstance()
-    cal.add(Calendar.HOUR, 1)
-    val inHour: Date = cal.getTime
-
     val job = JobBuilder.newJob(classOf[UpdateMailOrderJob]).withIdentity("regularUpdate", "mail").build()
     val trigger = TriggerBuilder.newTrigger()
-      .withSchedule(SimpleScheduleBuilder.simpleSchedule())
-      .startAt(inHour)
+      .withSchedule(CronScheduleBuilder.atHourAndMinuteOnGivenDaysOfWeek(17, 0, 1, 2, 3, 4, 5, 7))
+      .startNow()
       .build()
     scheduler.scheduleJob(job, trigger)
   }

@@ -6,6 +6,7 @@ import org.quartz._
 import org.joda.time.{Interval, DateTimeConstants, DateTime}
 import DateTimeConstants._
 import scala.Some
+import ua.org.yozh.jobs.UpdateMailOrderJob
 
 /**
  * @author artem
@@ -15,15 +16,12 @@ object SchedulerService {
   scheduler.start()
 
   /**
-   * Regular check for updated orders for this week (or for next week in case it's Sat/Sun)
-   * Scheduled at 17:00 every day except Friday
+   * Regular check for updated orders for this week (or for next week in case it's Fri=Sun)
    */
   def scheduleRegularUpdate() {
     val job = JobBuilder.newJob(classOf[UpdateMailOrderJob]).withIdentity("regularUpdate", "mail").build()
     val trigger = TriggerBuilder.newTrigger()
-      .withSchedule(CronScheduleBuilder.atHourAndMinuteOnGivenDaysOfWeek(17, 0, DateBuilder.MONDAY,
-        DateBuilder.TUESDAY, DateBuilder.WEDNESDAY, DateBuilder.THURSDAY, DateBuilder.SATURDAY,
-        DateBuilder.SUNDAY))
+      .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(17, 0))
 //      .withSchedule(CronScheduleBuilder.cronSchedule("30 * * * * ?"))
       .startNow()
       .build()
@@ -31,13 +29,24 @@ object SchedulerService {
   }
 
   /**
-   * Build interval for this week (if it's Mon-Fri)
-   * or for the next week (if it's Sat-Sun).
-   * This is the interval that will be used by [[ua.org.yozh.UpdateMailOrderJob]]
+   *
+   */
+  def scheduleFridayChecks() {
+    val job = JobBuilder.newJob(classOf[jobs.FridayChecksJob]).withIdentity("fridayChecks", "mail").build()
+    val trigger = TriggerBuilder.newTrigger()
+      .withSchedule(CronScheduleBuilder.cronSchedule("0 0 11-16 ? * FRI"))
+      .startNow()
+      .build()
+    scheduler.scheduleJob(job, trigger)
+  }
+
+  /**
+   * Build interval for this week (if it's Mon-Thu) or for the next week (if it's Fri-Sun).
+   * This is the interval that will be used by [[jobs.UpdateMailOrderJob]]
    */
   def getThisOrNextWeekBounds = {
     val today = new DateTime()
-    if (today.getDayOfWeek < SATURDAY) {
+    if (today.getDayOfWeek < FRIDAY) {
       val nextFriday = today.withDayOfWeek(FRIDAY)
       new Interval(today, nextFriday)
     } else {

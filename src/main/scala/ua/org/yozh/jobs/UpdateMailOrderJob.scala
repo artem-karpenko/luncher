@@ -1,7 +1,8 @@
-package ua.org.yozh
+package ua.org.yozh.jobs
 
 import org.quartz.{JobExecutionContext, Job}
 import org.slf4j.LoggerFactory
+import ua.org.yozh.{SchedulerService, MailService, Settings}
 
 /**
 * Checks for "updated orders" flag and if it's set - sends email

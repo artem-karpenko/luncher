@@ -6,6 +6,7 @@ import spray.json._
 import org.squeryl.PrimitiveTypeMode._
 import scala.collection.mutable.ArrayBuffer
 import ua.org.yozh.Luncher
+import org.joda.time.Interval
 
 /**
  * @author artem
@@ -22,17 +23,33 @@ object Order {
       Luncher.orders.where(o => o.userId === userId)
   }
 
-  def addOrUpdateAll(userId: Long, orders: Seq[Order]) {
+  /**
+   * Updates orders for given user
+   * @param userId id of user to update orders of
+   * @param orders orders to update
+   * @return true if any order was updated, false otherwise
+   */
+  def addOrUpdateAll(userId: Long, orders: Seq[Order]) = {
+    var updated = false
+
     for (order <- orders) {
-      var existingOrder = Luncher.orders.where(o => o.userId === userId and o.date === order.date)
-      if (existingOrder.size > 0) {
-        Luncher.orders.update(o =>
-          where(o.date === existingOrder.head.date and o.userId === userId)
-          set(o.description := order.description))
+      var existingOrders = Luncher.orders.where(o => o.userId === userId and o.date === order.date)
+      if (existingOrders.size > 0) {
+        val existingOrder = existingOrders.single
+
+        if (existingOrder.description != order.description) {
+          Luncher.orders.update(o =>
+            where(o.date === existingOrder.date and o.userId === userId)
+            set(o.description := order.description))
+          updated = true
+        }
       } else {
         Luncher.orders.insert(Order(order.description, userId, order.date))
+        updated = true
       }
     }
+
+    updated
   }
 
   def deleteByUserId(userId: Long) = {
@@ -47,11 +64,12 @@ object Order {
     Luncher.orders.where(o => o.userId === userId and o.date >= from and o.date <= to)
   }
 
-  def groupedByDayAndDesc(fromDate: Date, toDate: Date) = {
+  def groupedByDayAndDesc(bounds: Interval) = {
     import scala.language.postfixOps
 
     from(Luncher.orders)(o =>
-      where(o.date >= fromDate and o.date <= toDate and (o.description isNotNull))
+      where(o.date >= bounds.getStart.toDate and o.date <= bounds.getEnd.toDate
+        and (o.description isNotNull))
       groupBy(o.date, o.description)
       compute(count())
       orderBy(o.date)

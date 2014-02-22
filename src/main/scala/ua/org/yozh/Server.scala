@@ -118,7 +118,7 @@ object Server {
             val bytes = Body.bytes(req)
             val orders = new String(bytes).asJson.convertTo[Seq[Order]]
             transaction {
-              Order.addOrUpdateAll(user.get.id, orders)
+              Settings.ordersUpdated = Order.addOrUpdateAll(user.get.id, orders)
             }
             ResponseString("ORDERS SAVED")
           } else {
@@ -157,12 +157,12 @@ object Server {
           }
         }
 
-      case POST(Path(Seg("sendMail" :: "from" :: fromDate :: "to" :: toDate :: Nil))) =>
-        transaction {
-          MailService.sendMail(new Date(BigInt(fromDate).longValue),
-            new Date(BigInt(toDate).longValue))
-          Ok
-        }
+//      case POST(Path(Seg("sendMail" :: "from" :: fromDate :: "to" :: toDate :: Nil))) =>
+//        transaction {
+//          MailService.sendMail(new Date(BigInt(fromDate).longValue),
+//            new Date(BigInt(toDate).longValue))
+//          Ok
+//        }
     }
 
     unfiltered.jetty.Http.local(8080).filter(echo).run()

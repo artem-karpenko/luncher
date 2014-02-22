@@ -90,14 +90,13 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
 
         if (0 < today.getDay() && today.getDay() < 6) {
             nextFriday.setDate(nextFriday.getDate() + (5 - today.getDay()));
+            return {
+                from: today,
+                to: nextFriday
+            };
         } else {
             return null;
         }
-
-        return {
-            from: today,
-            to: nextFriday
-        };
     }
 
     function getNextWeekBounds() {

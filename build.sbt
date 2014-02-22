@@ -20,7 +20,9 @@ libraryDependencies ++= Seq(
   "javax.mail" % "mail" % "1.4.7",
   "org.quartz-scheduler" % "quartz" % "2.2.1",
   "org.quartz-scheduler" % "quartz-jobs" % "2.2.1",
-  "org.slf4j" % "slf4j-simple" % "1.7.6"
+  "org.slf4j" % "slf4j-simple" % "1.7.6",
+  "joda-time" % "joda-time" % "2.3", // TODO consider nscala-time
+  "org.joda" % "joda-convert" % "1.2"
 )
 
 resolvers ++= Seq(

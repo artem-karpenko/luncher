@@ -10,6 +10,7 @@ import org.squeryl.dsl.GroupWithMeasures
 import scala.collection.mutable.MapLike
 import scala.collection.mutable
 import ua.org.yozh.entity.Order
+import org.joda.time.Interval
 
 /**
  * Service responsible for building and sending of order email
@@ -20,16 +21,14 @@ object MailService {
 
   /**
    * Send email with orders for given date bounds
-   * @param from
-   * @param to
    */
-  def sendMail(from: Date, to: Date) {
+  def sendMail(bounds: Interval) {
     val text = new StringBuilder
     val orderMap = new collection.mutable.LinkedHashMap[Date, collection.mutable.Map[String, Long]]
 
     // collect orders into a map
     transaction {
-      val orders = Order.groupedByDayAndDesc(from, to)
+      val orders = Order.groupedByDayAndDesc(bounds)
       for (order <- orders) {
         if (!orderMap.contains(order.key._1)) {
           orderMap(order.key._1) = new mutable.HashMap[String, Long]
@@ -67,7 +66,8 @@ object MailService {
     val message = new MimeMessage(session)
     message.setFrom(new InternetAddress("food-orders@smiss.ua"))
     message.setRecipient(Message.RecipientType.TO, new InternetAddress(System.getProperty("username")))
-    message.setSubject(new Formatter().format("Order for %1$td.%1$tm - %2$td.%2$tm", from, to).toString)
+    message.setSubject(new Formatter().format("Order for %1$td.%1$tm - %2$td.%2$tm",
+      bounds.getStart.toDate, bounds.getEnd.toDate).toString)
     message.setSentDate(new Date)
     message.setText(text.toString())
 

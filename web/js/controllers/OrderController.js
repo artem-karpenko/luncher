@@ -64,16 +64,23 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
      * @param bounds
      */
     function getOrders(bounds) {
-        var orders = orderRest
-            .one("from", bounds.from.getTime())
-            .one("to", bounds.to.getTime()).getList().$object;
+        var orders;
 
-        for (var from = new Date(bounds.from.getTime()); from.getTime() <= bounds.to.getTime();
-             from = new Date(from.getTime()), from.setDate(from.getDate() + 1)) {
-            if (!orders[from]) {
-                orders.push(new Order(from.getTime(), null));
+        if (bounds) {
+            orders = orderRest
+                .one("from", bounds.from.getTime())
+                .one("to", bounds.to.getTime()).getList().$object;
+
+            for (var from = new Date(bounds.from.getTime()); from.getTime() <= bounds.to.getTime();
+                 from = new Date(from.getTime()), from.setDate(from.getDate() + 1)) {
+                if (!orders[from]) {
+                    orders.push(new Order(from.getTime(), null));
+                }
             }
+        } else {
+            orders = [];
         }
+
         return orders;
     }
 
@@ -83,6 +90,8 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
 
         if (0 < today.getDay() && today.getDay() < 6) {
             nextFriday.setDate(nextFriday.getDate() + (5 - today.getDay()));
+        } else {
+            return null;
         }
 
         return {

@@ -29,7 +29,8 @@ object SchedulerService {
   }
 
   /**
-   *
+   * Checks running each Friday hourly from 11 till 16 o'clock to check for unsaved orders
+   * for the next week.
    */
   def scheduleFridayChecks() {
     val job = JobBuilder.newJob(classOf[jobs.FridayChecksJob]).withIdentity("fridayChecks", "mail").build()

@@ -13,7 +13,8 @@
                 <td>{{order.date | date:'EEEE, dd.MM.yyyy'}}</td>
                 <td>
                     <select ng-model="order.description"
-                            ng-options="desc for desc in orderData.availableOrderDescriptions">
+                            ng-options="desc for desc in orderData.availableOrderDescriptions"
+                            ng-disabled="isOrderDisabled(order)">
                         <option value=""></option>
                     </select>
                 </td>

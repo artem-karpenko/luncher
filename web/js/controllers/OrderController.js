@@ -52,6 +52,14 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
         sendEmail(getNextWeekBounds())
     };
 
+    /**
+     * Disable ability to change order after 17 o'clock the day before order date
+     */
+    $scope.isOrderDisabled = function (order) {
+        return dayDifferenceWithinWeek(new Date(order.date), getToday()) == 0 || (
+            dayDifferenceWithinWeek(new Date(order.date), getToday()) == 1 && new Date().getHours() >= 23);
+    };
+
     function sendEmail(bounds) {
         mailRest
             .one("from", bounds.from.getTime())
@@ -116,6 +124,17 @@ angular.module('luncher').controller('OrderController', function ($scope, $route
         $scope.orders = orderRest.getList().$object;
     }
 
+    /**
+     * Difference between given dates in days, assuming that days belong to the same week
+     * (does not work correctly for Sat/Sun difference as well but it does not matter here)
+     */
+    function dayDifferenceWithinWeek(d1, d2) {
+        return d1.getDay() - d2.getDay();
+    }
+
+    /**
+     * Builds date with only year, month and day set to non-zero values
+     */
     function getToday() {
         var today = new Date();
         today.setHours(0);
